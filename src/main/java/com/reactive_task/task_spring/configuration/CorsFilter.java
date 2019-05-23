@@ -1,5 +1,6 @@
 package com.reactive_task.task_spring.configuration;
 
+import org.springframework.boot.autoconfigure.jersey.JerseyProperties;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;

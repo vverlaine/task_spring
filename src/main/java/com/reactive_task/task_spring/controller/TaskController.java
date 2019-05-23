@@ -52,12 +52,12 @@ public class TaskController {
     ----------------------------------------------------------------------------------------------------
      -------------------------------------------------------------------------------------------------*/
 
-    @RequestMapping(value = "/all", method = RequestMethod.GET, produces = "application/json")
+    @GetMapping(value = "/all",  produces = "application/json")
     private Flux<Task> getAllTask() {
         return taskRepository.findAll().delayElements(Duration.ofMillis(1));
     }
 
-    @RequestMapping(value = "/byId/{id}", method = RequestMethod.GET)
+    @GetMapping(value = "/byId/{id}")
     public Mono<ResponseEntity<Task>> getTaskId(@PathVariable(value = "id") String id) {
         return taskRepository.findById(id).map(saveId -> ResponseEntity.ok(saveId))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
@@ -110,7 +110,7 @@ public class TaskController {
     ----------------------------------------------------------------------------------------------------
      -------------------------------------------------------------------------------------------------*/
 
-    @RequestMapping(value = "/create", method = RequestMethod.POST)
+    @PostMapping(value = "/create")
     private Mono<Task> create(@RequestBody Task task) {
 
         //ACA NOTIFICAMOS QUE SE AGREGO UNA NUEVA TAREA
@@ -130,7 +130,7 @@ public class TaskController {
     ----------------------------------------------------------------------------------------------------
      -------------------------------------------------------------------------------------------------*/
 
-    @RequestMapping(value = "/update/{id}")
+    @PutMapping(value = "/update/{id}")
     private Mono<ResponseEntity<Task>> update(@PathVariable(value = "id") String id, @RequestBody Task task) {
 
         return taskRepository.findById(id)
