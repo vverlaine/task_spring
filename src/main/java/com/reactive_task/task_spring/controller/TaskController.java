@@ -17,7 +17,6 @@ import java.time.Duration;
 import java.util.UUID;
 
 
-
 @RestController
 @RequestMapping("/task")
 public class TaskController {
@@ -52,7 +51,7 @@ public class TaskController {
     ----------------------------------------------------------------------------------------------------
      -------------------------------------------------------------------------------------------------*/
 
-    @GetMapping(value = "/all",  produces = "application/json")
+    @GetMapping(value = "/all", produces = "application/json")
     private Flux<Task> getAllTask() {
         return taskRepository.findAll().delayElements(Duration.ofMillis(1));
     }
@@ -157,10 +156,14 @@ public class TaskController {
     @DeleteMapping(value = "/deleteTask/{id}")
     public Mono<ResponseEntity<Void>> deleteTask(@PathVariable(value = "id") String id) {
         return taskRepository.findById(id)
-                .flatMap(existingTask ->
-                        taskRepository.delete(existingTask))
-                .then(Mono.just(new ResponseEntity<Void>(HttpStatus.ACCEPTED)))
+                .flatMap(existingTask -> {
+                    taskEmitterProcessor.onNext(existingTask);
+                    return taskRepository.delete(existingTask);
+                }).then(Mono.just(new ResponseEntity<Void>(HttpStatus.ACCEPTED)))
                 .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        //         taskRepository.delete(existingTask))
+        // .then(Mono.just(new ResponseEntity<Void>(HttpStatus.ACCEPTED)))
+        // .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
 }
