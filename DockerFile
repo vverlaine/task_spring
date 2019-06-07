@@ -1,0 +1,4 @@
+FROM java:8
+EXPOSE 9198
+ADD /target/task_spring.jar task_spring.jar
+ENTRYPOINT ["java","-jar","task_spring.jar"]

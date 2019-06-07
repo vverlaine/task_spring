@@ -12,7 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
-
+import javax.validation.Valid;
 import java.time.Duration;
 import java.util.UUID;
 
@@ -128,7 +128,7 @@ public class TaskController {
 
     ----------------------------------------------------------------------------------------------------
      -------------------------------------------------------------------------------------------------*/
-
+/*
     @PutMapping(value = "/update/{id}")
     private Mono<ResponseEntity<Task>> update(@PathVariable(value = "id") String id, @RequestBody Task task) {
 
@@ -144,7 +144,22 @@ public class TaskController {
                 }).map(updatedTask -> new ResponseEntity<>(updatedTask, HttpStatus.OK))
                 .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
+*/
 
+    @RequestMapping(value = "/update/{id}", method = RequestMethod.PUT)
+    public Mono<ResponseEntity<Void>> update(@PathVariable("id") String id, @Valid @RequestBody Task task) {
+        return taskRepository.findById(id)
+                .flatMap(existnTask -> {
+                    existnTask.setTitle(task.getTitle());
+                    existnTask.setComplete(task.getComplete());
+
+                    System.out.println("NOTIFICANDO TAREA ACTUALIZADA" + task.getTitle());
+
+                    taskEmitterProcessor.onNext(task);
+                    return taskRepository.save(existnTask);
+                }).map(updatedTask -> new ResponseEntity<Void>(HttpStatus.ACCEPTED))
+                .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
     /*--------------------------------------------------------------------------------------------------
     ----------------------------------------------------------------------------------------------------
 
@@ -155,15 +170,15 @@ public class TaskController {
 
     @DeleteMapping(value = "/deleteTask/{id}")
     public Mono<ResponseEntity<Void>> deleteTask(@PathVariable(value = "id") String id) {
-        return taskRepository.findById(id)
-                .flatMap(existingTask -> {
-                    taskEmitterProcessor.onNext(existingTask);
-                    return taskRepository.delete(existingTask);
-                }).then(Mono.just(new ResponseEntity<Void>(HttpStatus.ACCEPTED)))
-                .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        //         taskRepository.delete(existingTask))
-        // .then(Mono.just(new ResponseEntity<Void>(HttpStatus.ACCEPTED)))
-        // .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return taskRepository.findById(id).flatMap(existingTask -> {
+            System.out.println("NOTIFICANDO TAREA ELIMINADA" + existingTask);
+
+            taskEmitterProcessor.onNext(existingTask);
+            return taskRepository.delete(existingTask)
+                    .then(Mono.just(new ResponseEntity<Void>(HttpStatus.ACCEPTED)))
+                    .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        });
+
     }
 
 }
